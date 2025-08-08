@@ -169,26 +169,26 @@ mongoose.connect(mongoUri)
         
         // Criar usuário admin se não existir
         try {
+            console.log('🔍 Verificando usuário admin...');
             let adminUser = await User.findOne({ username: 'admin' });
             if (!adminUser) {
-                console.log('🔧 Criando usuário admin...');
+                console.log('⚠️ Usuário admin não encontrado. Criando...');
                 const hashedPassword = await bcrypt.hash('Danilo30!', 10);
                 adminUser = new User({
                     username: 'admin',
-                    email: 'admin@portfolio.com',
+                    email: 'admin@sistema.com',
                     password: hashedPassword,
-                    role: 'admin'
+                    isAdmin: true,
+                    mfaEnabled: false
                 });
                 await adminUser.save();
-                console.log('✅ Usuário admin criado no MongoDB');
+                console.log('✅ Usuário admin criado com sucesso!');
+                console.log('👤 Username: admin');
+                console.log('🔑 Password: Danilo30!');
             } else {
-                console.log('✅ Usuário admin já existe no MongoDB');
+                console.log('✅ Usuário admin já existe');
+                console.log('👤 Admin ID:', adminUser._id);
             }
-            // Salvar referência global do admin
-            global.adminUserId = adminUser._id;
-            console.log('📋 Usuário admin ID:', adminUser._id);
-            console.log('🔑 Admin username:', adminUser.username);
-            console.log('📧 Admin email:', adminUser.email);
             
             // Criar categorias padrão se não existirem
             const categoriesCount = await Category.countDocuments();
@@ -204,12 +204,11 @@ mongoose.connect(mongoUri)
                 await Category.insertMany(defaultCategories);
                 console.log('Categorias padrão criadas');
             }
-            
         } catch (error) {
-            console.error('Erro ao criar dados iniciais:', error);
+            console.error('❌ Erro ao criar dados iniciais:', error);
         }
-    })
-    .catch(err => console.error('Falha ao conectar ao MongoDB:', err));
+})
+.catch(err => console.error('Falha ao conectar ao MongoDB:', err));
 
 // Garante que o diretório de projetos exista
 const projectsDir = path.join(__dirname, 'projects');
@@ -1331,50 +1330,57 @@ app.post('/mfa-disable', requireLogin, uploadNone.none(), async (req, res) => {
 // ================== FIM DAS ROTAS MFA ==================
 
 // ================== ROTA DE DEBUG ADMIN ==================
-
-// Rota para debug - verificar/recriar usuário admin
-app.get('/debug/admin', async (req, res) => {
+app.get('/debug-admin', async (req, res) => {
     try {
-        console.log('🔧 DEBUG: Verificando usuário admin...');
+        console.log('🔧 DEBUG: Verificando usuário admin');
         
-        // Verificar se existe
+        // Verificar se usuário existe
         let adminUser = await User.findOne({ username: 'admin' });
         
         if (!adminUser) {
-            console.log('🔧 Admin não encontrado, criando...');
+            console.log('❌ Usuário admin não encontrado. Criando...');
             const hashedPassword = await bcrypt.hash('Danilo30!', 10);
             adminUser = new User({
                 username: 'admin',
-                email: 'admin@portfolio.com',
+                email: 'admin@sistema.com',
                 password: hashedPassword,
-                role: 'admin'
+                isAdmin: true,
+                mfaEnabled: false
             });
             await adminUser.save();
             console.log('✅ Usuário admin criado!');
         }
         
-        // Verificar total de usuários
-        const totalUsers = await User.countDocuments();
-        const allUsers = await User.find({}, 'username email role');
+        // Teste de senha
+        const passwordTest = await bcrypt.compare('Danilo30!', adminUser.password);
+        
+        const debug = {
+            userExists: !!adminUser,
+            userId: adminUser._id,
+            username: adminUser.username,
+            isAdmin: adminUser.isAdmin,
+            passwordHash: adminUser.password.substring(0, 20) + '...',
+            passwordTest: passwordTest,
+            totalUsers: await User.countDocuments(),
+            mongoConnected: mongoose.connection.readyState === 1
+        };
         
         res.json({
-            success: true,
-            message: 'Debug concluído',
-            adminExists: !!adminUser,
-            totalUsers: totalUsers,
-            users: allUsers,
-            adminInfo: {
-                id: adminUser._id,
-                username: adminUser.username,
-                email: adminUser.email,
-                role: adminUser.role,
-                mfaEnabled: adminUser.mfaEnabled
+            status: 'success',
+            message: 'Debug do usuário admin',
+            debug: debug,
+            instructions: {
+                login: 'Use: admin / Danilo30!',
+                url: '/login.html'
             }
         });
         
     } catch (error) {
-        console.error('Erro no debug:', error);
-        res.json({ success: false, error: error.message });
+        console.error('Erro no debug admin:', error);
+        res.json({
+            status: 'error',
+            message: error.message
+        });
     }
 });
 
