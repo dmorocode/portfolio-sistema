@@ -162,7 +162,8 @@ const initializeTransporter = async () => {
 initializeTransporter();
 
 // Conexão com MongoDB
-mongoose.connect(process.env.MONGO_URI)
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/meuPortfolioDB';
+mongoose.connect(mongoUri)
     .then(async () => {
         console.log('Conectado ao MongoDB com sucesso!');
         
