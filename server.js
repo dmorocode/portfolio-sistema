@@ -1493,6 +1493,71 @@ app.get('/download/:projectId/:filename', async (req, res) => {
     }
 });
 
+// ================== ROTAS DE VISUALIZAÇÃO DE PROJETOS ==================
+
+// Rota para visualizar projeto específico
+app.get('/project/:id', async (req, res) => {
+    try {
+        console.log('👁️ VISUALIZAÇÃO DE PROJETO');
+        const projectId = req.params.id;
+        console.log('Project ID:', projectId);
+        
+        // Buscar projeto no banco
+        const project = await Project.findById(projectId).populate('category');
+        
+        if (!project) {
+            console.log('❌ Projeto não encontrado');
+            return res.status(404).render('error', { 
+                message: 'Projeto não encontrado',
+                error: { status: 404 }
+            });
+        }
+        
+        console.log('✅ Projeto encontrado:', project.title);
+        console.log('📁 Arquivos do projeto:', project.files ? project.files.length : 0);
+        
+        // Renderizar página de detalhes do projeto
+        res.render('project-details', {
+            project: project,
+            user: req.user || null
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar projeto:', error);
+        res.status(500).render('error', { 
+            message: 'Erro interno do servidor',
+            error: { status: 500 }
+        });
+    }
+});
+
+// Rota para página pública de projetos
+app.get('/projects', async (req, res) => {
+    try {
+        console.log('📋 LISTAGEM PÚBLICA DE PROJETOS');
+        
+        // Buscar todos os projetos com suas categorias
+        const projects = await Project.find().populate('category').sort({ createdAt: -1 });
+        const categories = await Category.find().sort({ name: 1 });
+        
+        console.log('📊 Total de projetos:', projects.length);
+        console.log('📂 Total de categorias:', categories.length);
+        
+        res.render('projects', {
+            projects: projects,
+            categories: categories,
+            user: req.user || null
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao carregar projetos:', error);
+        res.status(500).render('error', { 
+            message: 'Erro ao carregar projetos',
+            error: { status: 500 }
+        });
+    }
+});
+
 // Iniciar servidor APENAS após conexão com MongoDB
 let serverStarted = false;
 
