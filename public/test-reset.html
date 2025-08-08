@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Reset</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-bold mb-4">🔧 Teste de Interface de Reset</h2>
+        <p class="mb-4">Para testar a interface de redefinição de senha:</p>
+        
+        <ol class="list-decimal list-inside space-y-2 mb-6">
+            <li>Vá para <code>http://localhost:3000/forgot-password</code></li>
+            <li>Digite: <code>admin@admin.com</code></li>
+            <li>Clique em "Enviar Instruções"</li>
+            <li>Verifique o email recebido</li>
+            <li>Clique no link "✨ Redefinir Minha Senha"</li>
+            <li>Digite uma nova senha</li>
+            <li>Confirme a senha</li>
+            <li>Observe como o botão muda conforme você digita</li>
+            <li>Clique em "🔒 Redefinir Minha Senha" quando aparecer ✅</li>
+        </ol>
+        
+        <div class="bg-blue-50 p-4 rounded-lg">
+            <h3 class="font-bold text-blue-800">Estados do Botão:</h3>
+            <ul class="text-sm text-blue-700 mt-2 space-y-1">
+                <li>🔒 <strong>Inicial:</strong> "Redefinir Minha Senha"</li>
+                <li>❌ <strong>Senhas diferentes:</strong> "Senhas não coincidem"</li>
+                <li>✅ <strong>Senhas válidas:</strong> "Redefinir Minha Senha"</li>
+                <li>🔄 <strong>Enviando:</strong> "Redefinindo senha..."</li>
+            </ul>
+        </div>
+        
+        <div class="mt-6">
+            <a href="http://localhost:3000/forgot-password" 
+               class="inline-block bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
+                🔗 Ir para Forgot Password
+            </a>
+        </div>
+    </div>
+</body>
+</html>

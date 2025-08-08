@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Meu Portfólio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Ligação para o novo ficheiro de estilos -->
+    <link rel="stylesheet" href="/css/styles.css">
+    <script>
+        // Script de inicialização do tema - precisa estar no head para evitar flash
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 transition-colors duration-300">
+
+    <!-- Navegação -->
+    <nav class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg sticky top-0 z-50 border-b border-gray-200/20 dark:border-gray-700/20">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between">
+                <div class="flex space-x-7">
+                    <a href="/dashboard" class="flex items-center py-4 px-2 nav-link">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-gray-800 dark:text-gray-200">Meu Portfólio</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">Bem-vindo, <%= user.username %>!</div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <!-- Indicator de Status -->
+                    <div class="hidden md:flex items-center space-x-2 px-3 py-1 bg-green-100 dark:bg-green-900 rounded-full">
+                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                        <span class="text-xs text-green-700 dark:text-green-300 font-medium">Online</span>
+                    </div>
+                    
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" type="button" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-sm p-2.5 transition-all duration-200">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 5.05A1 1 0 003.636 6.464l.707.707a1 1 0 001.414-1.414l-.707-.707zM3 11a1 1 0 100-2H2a1 1 0 100 2h1zM6.464 16.364l-.707.707a1 1 0 001.414 1.414l.707-.707a1 1 0 00-1.414-1.414z" fill-rule="evenodd" clip-rule="evenodd"></path>
+                        </svg>
+                    </button>
+                    
+                    <!-- Admin Actions -->
+                    <% if (user.role === 'admin') { %>
+                    <button id="addProjectBtn" class="flex items-center space-x-2 py-2 px-4 btn-success text-white rounded-lg transition duration-200 hover:scale-105">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                        </svg>
+                        <span class="hidden md:inline">Adicionar Projeto</span>
+                    </button>
+                    
+                    <!-- MFA Settings -->
+                    <div class="relative">
+                        <button id="mfaBtn" class="flex items-center space-x-2 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition duration-200 hover:scale-105">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.031 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                            </svg>
+                            <span class="hidden md:inline">
+                                <% if (user.mfaEnabled) { %>
+                                    MFA Ativo
+                                <% } else { %>
+                                    Config. MFA
+                                <% } %>
+                            </span>
+                        </button>
+                        
+                        <!-- Dropdown MFA -->
+                        <div id="mfaDropdown" class="hidden absolute right-0 top-full mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-600 z-50">
+                            <div class="p-4">
+                                <h3 class="font-bold text-gray-800 dark:text-gray-200 mb-3">
+                                    🔐 Autenticação de Dois Fatores
+                                </h3>
+                                
+                                <% if (user.mfaEnabled) { %>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-700">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                            <span class="text-green-700 dark:text-green-300 text-sm font-medium">
+                                                MFA Habilitado
+                                            </span>
+                                        </div>
+                                        
+                                        <button onclick="showDisableMfaModal()" class="w-full text-left px-3 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded text-sm">
+                                            🔓 Desabilitar MFA
+                                        </button>
+                                    </div>
+                                <% } else { %>
+                                    <div class="space-y-3">
+                                        <p class="text-gray-600 dark:text-gray-400 text-sm">
+                                            Adicione uma camada extra de segurança à sua conta.
+                                        </p>
+                                        
+                                        <a href="/mfa-setup" class="block w-full text-center py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition">
+                                            🔐 Configurar MFA
+                                        </a>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                    </div>
+                    <% } %>
+                    
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <div class="avatar">
+                            <%= user.username.charAt(0).toUpperCase() %>
+                        </div>
+                    </div>
+                    
+                    <!-- Logout -->
+                    <a href="/logout" class="flex items-center space-x-2 py-2 px-4 btn-danger text-white rounded-lg transition duration-200 hover:scale-105">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                        </svg>
+                        <span class="hidden md:inline">Sair</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <div class="max-w-6xl mx-auto p-8">
+        
+        <!-- Seção de Notificações -->
+        <% if (locals.success_msg && success_msg.length > 0) { %>
+            <div id="success-alert" class="alert alert-success px-4 py-3 rounded relative mb-6 fade-in" role="alert">
+                <strong class="font-bold">Sucesso!</strong>
+                <span class="block sm:inline"><%= success_msg %></span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="closeAlert('success-alert')">
+                    <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Fechar</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+                </span>
+            </div>
+        <% } %>
+        <% if (locals.error_msg && error_msg.length > 0) { %>
+            <div id="error-alert" class="alert alert-error px-4 py-3 rounded relative mb-6 fade-in" role="alert">
+                <strong class="font-bold">Erro!</strong>
+                <span class="block sm:inline"><%= error_msg %></span>
+                <span class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer" onclick="closeAlert('error-alert')">
+                    <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Fechar</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
+                </span>
+            </div>
+        <% } %>
+
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Meus Projetos</h1>
+            <form action="/dashboard" method="GET" class="flex items-center gap-2 w-full md:w-auto">
+                <select name="category" onchange="this.form.submit()" class="p-2 border rounded shadow-sm bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <option value="">Todas as Categorias</option>
+                    <% categories.forEach(cat => { %>
+                        <option value="<%= cat._id %>" <%= selectedCategory == cat._id.toString() ? 'selected' : '' %>><%= cat.name %></option>
+                    <% }); %>
+                </select>
+                <input type="text" name="search" value="<%= searchQuery %>" placeholder="Buscar projetos..." class="form-input w-full p-2 border-gray-300 rounded shadow-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                <button type="submit" class="btn-primary p-2 text-white rounded">Buscar</button>
+            </form>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <% if (projects.length === 0) { %>
+                <p class="text-gray-500 dark:text-gray-400 col-span-3">Nenhum projeto encontrado.</p>
+            <% } else { %>
+                <% projects.forEach(project => { %>
+                    <div class="project-card bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden flex flex-col group fade-in">
+                        <a href="/project/<%= project._id %>" class="block overflow-hidden h-48">
+                            <img src="/uploads/covers/<%= project.coverImage %>" alt="Capa do <%= project.title %>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                        </a>
+                        <div class="p-4 flex-grow flex flex-col">
+                            <div class="flex justify-between items-start mb-2">
+                                <h3 class="font-bold text-lg dark:text-white"><%= project.title %></h3>
+                                <% if (project.category) { %>
+                                    <span class="text-xs font-semibold bg-gray-200 text-gray-800 px-2 py-1 rounded-full"><%= project.category.name %></span>
+                                <% } %>
+                            </div>
+                            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 flex-grow"><%= project.description.substring(0, 100) %>...</p>
+                            <div class="text-xs text-gray-500 dark:text-gray-400">Downloads: <%= project.downloads %></div>
+                        </div>
+                        <% if (user.role === 'admin') { %>
+                        <div class="p-2 bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-600 flex justify-end space-x-2">
+                            <button 
+                                data-project-id="<%= project._id %>" 
+                                data-title="<%= project.title %>" 
+                                data-description="<%= project.description %>" 
+                                data-category="<%= project.category ? project.category._id : '' %>"
+                                onclick="openEditModal(this)" 
+                                class="text-xs text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
+                            >
+                                Editar
+                            </button>
+                            <form action="/admin/delete-project/<%= project._id %>" method="POST" onsubmit="return confirm('Tem certeza?');">
+                                <button type="submit" class="text-xs text-red-500 hover:text-red-700">Deletar</button>
+                            </form>
+                        </div>
+                        <% } %>
+                    </div>
+                <% }); %>
+            <% } %>
+        </div>
+
+        <!-- Paginação -->
+        <div class="mt-8 flex justify-center">
+            <nav class="flex space-x-2">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <a href="/dashboard?page=<%= i %>&search=<%= searchQuery %>&category=<%= selectedCategory %>" 
+                       class="pagination-link px-4 py-2 rounded <%= currentPage === i ? 'bg-blue-500 text-white' : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Painel de Administração -->
+    <% if (user.role === 'admin') { %>
+    <div class="max-w-6xl mx-auto p-8 mt-8 border-t-2 border-gray-200 dark:border-gray-700">
+        <h2 class="text-3xl font-bold dark:text-white mb-8">Painel de Administração</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold mb-4 dark:text-white">Gerenciar Utilizadores</h3>
+                 <form action="/admin/create-user" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
+                    <input type="text" name="username" placeholder="Nome de usuário" required class="form-input p-2 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <input type="email" name="email" placeholder="E-mail do usuário" required class="form-input p-2 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <input type="password" name="password" placeholder="Senha (mín. 6 caracteres)" required class="form-input p-2 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <select name="role" required class="form-input p-2 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option value="">Tipo de usuário</option>
+                        <option value="admin">Administrador</option>
+                        <option value="user">Usuário</option>
+                    </select>
+                    <button type="submit" class="btn-primary text-white p-2 rounded">Criar Utilizador</button>
+                </form>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr class="border-b dark:border-gray-700">
+                                <th class="text-left p-2 dark:text-white">Utilizador</th>
+                                <th class="text-left p-2 dark:text-white">E-mail</th>
+                                <th class="text-left p-2 dark:text-white">Nível</th>
+                                <th class="text-left p-2 dark:text-white">Trocar Senha</th>
+                                <th class="text-left p-2 dark:text-white">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% allUsers.forEach(u => { %>
+                            <tr class="table-row border-b dark:border-gray-700">
+                                <td class="p-2 dark:text-white"><%= u.username %></td>
+                                <td class="p-2 text-sm text-gray-600 dark:text-gray-400"><%= u.email %></td>
+                                <td class="p-2"><span class="px-2 py-1 text-xs font-semibold rounded-full <%= u.role === 'admin' ? 'bg-yellow-200 text-yellow-800' : 'bg-green-200 text-green-800' %>"><%= u.role %></span></td>
+                                <td class="p-2">
+                                    <form action="/admin/change-password/<%= u._id %>" method="POST" class="flex items-center space-x-2">
+                                        <input type="password" name="newPassword" placeholder="Nova senha" required class="form-input p-1 border-gray-300 rounded text-sm w-36 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                                        <button type="submit" class="text-xs bg-gray-500 text-white px-2 py-1 rounded hover:bg-gray-600">Salvar</button>
+                                    </form>
+                                </td>
+                                <td class="p-2">
+                                    <% if (user.id !== u.id.toString()) { %>
+                                    <form action="/admin/delete-user/<%= u._id %>" method="POST" onsubmit="return confirm('Tem certeza que deseja deletar este utilizador?');">
+                                        <button type="submit" class="text-red-500 hover:text-red-700">Deletar</button>
+                                    </form>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-semibold mb-4 dark:text-white">Gerenciar Categorias</h3>
+                <form action="/admin/create-category" method="POST" class="flex gap-2 mb-4">
+                    <input type="text" name="name" placeholder="Nova categoria" required class="form-input flex-grow p-2 border-gray-300 rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                    <button type="submit" class="btn-primary text-white p-2 rounded">Criar</button>
+                </form>
+                <ul class="space-y-2">
+                    <% categories.forEach(cat => { %>
+                        <li class="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                            <span class="dark:text-white"><%= cat.name %></span>
+                            <form action="/admin/delete-category/<%= cat._id %>" method="POST" onsubmit="return confirm('Tem certeza que deseja deletar esta categoria?');">
+                                <button type="submit" class="text-red-500 hover:text-red-700 text-sm">Deletar</button>
+                            </form>
+                        </li>
+                    <% }); %>
+                </ul>
+            </div>
+            
+            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md lg:col-span-2">
+                <h3 class="text-xl font-semibold mb-4 dark:text-white">Log de Atividades Recentes</h3>
+                <div class="overflow-auto h-64 border dark:border-gray-600 rounded">
+                    <ul class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <% activityLogs.forEach(log => { %>
+                            <li class="text-sm p-3 flex justify-between items-center">
+                                <div>
+                                    <span class="font-bold text-blue-500"><%= log.username %></span>
+                                    <span class="text-gray-600 dark:text-gray-400"><%= log.action %></span>
+                                    <% if (log.details) { %>
+                                        - <span class="italic"><%= log.details %></span>
+                                    <% } %>
+                                </div>
+                                <span class="text-xs text-gray-400 flex-shrink-0 ml-4"><%= new Date(log.createdAt).toLocaleString('pt-BR') %></span>
+                            </li>
+                        <% }); %>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <% } %>
+
+    <!-- Modal de Adicionar Projeto -->
+    <% if (user.role === 'admin') { %>
+    <div id="addProjectModal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+            <form action="/upload" method="POST" enctype="multipart/form-data" class="p-6">
+                <h3 class="text-2xl font-bold mb-4 dark:text-white">Adicionar Novo Projeto</h3>
+                <div class="mb-4">
+                    <label for="title" class="block text-sm font-bold mb-2 dark:text-white">Título:</label>
+                    <input type="text" id="title" name="title" required class="form-input shadow appearance-none border-gray-300 rounded w-full py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                </div>
+                 <div class="mb-4">
+                    <label for="description" class="block text-sm font-bold mb-2 dark:text-white">Descrição:</label>
+                    <textarea id="description" name="description" required class="form-input shadow appearance-none border-gray-300 rounded w-full py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="category" class="block text-sm font-bold mb-2 dark:text-white">Categoria:</label>
+                    <select id="category" name="category" class="form-input shadow border-gray-300 rounded w-full py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option value="">Selecione uma categoria</option>
+                        <% categories.forEach(cat => { %>
+                            <option value="<%= cat._id %>"><%= cat.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                 <div class="mb-4">
+                    <label for="coverImage" class="block text-sm font-bold mb-2 dark:text-white">Imagem de Capa:</label>
+                    <input type="file" id="coverImage" name="coverImage" accept="image/*" required class="w-full text-gray-400">
+                </div>
+                <div class="mb-6">
+                    <label for="projectFile" class="block text-sm font-bold mb-2 dark:text-white">Ficheiro do Projeto:</label>
+                    <input type="file" id="projectFile" name="projectFile" required class="w-full text-gray-400">
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button type="button" id="closeAddModalBtn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2">Cancelar</button>
+                    <button type="submit" class="btn-primary px-4 py-2 text-white rounded">Salvar Projeto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal de Editar Projeto -->
+    <div id="editProjectModal" class="modal pointer-events-none fixed w-full h-full top-0 left-0 flex items-center justify-center opacity-0">
+        <div class="modal-overlay absolute w-full h-full bg-gray-900 opacity-50"></div>
+        <div class="modal-container bg-white dark:bg-gray-800 w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+            <form id="editProjectForm" method="POST" enctype="multipart/form-data" class="p-6">
+                <h3 class="text-2xl font-bold mb-4 dark:text-white">Editar Projeto</h3>
+                <div class="mb-4">
+                    <label for="editTitle" class="block text-sm font-bold mb-2 dark:text-white">Título:</label>
+                    <input type="text" id="editTitle" name="title" required class="form-input shadow appearance-none border-gray-300 rounded w-full py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                </div>
+                <div class="mb-4">
+                    <label for="editDescription" class="block text-sm font-bold mb-2 dark:text-white">Descrição:</label>
+                    <textarea id="editDescription" name="description" required class="form-input shadow appearance-none border-gray-300 rounded w-full py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white" rows="3"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="editCategory" class="block text-sm font-bold mb-2 dark:text-white">Categoria:</label>
+                    <select id="editCategory" name="category" class="form-input shadow border-gray-300 rounded w-full py-2 px-3 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+                        <option value="">Selecione uma categoria</option>
+                        <% categories.forEach(cat => { %>
+                            <option value="<%= cat._id %>"><%= cat.name %></option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label for="editCoverImage" class="block text-sm font-bold mb-2 dark:text-white">Nova Imagem de Capa (Opcional):</label>
+                    <input type="file" id="editCoverImage" name="coverImage" class="w-full text-gray-400">
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button type="button" id="closeEditModalBtn" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 mr-2">Cancelar</button>
+                    <button type="submit" class="btn-primary px-4 py-2 text-white rounded">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <% } %>
+    
+    <!-- Modal para Desabilitar MFA -->
+    <% if (user.role === 'admin' && user.mfaEnabled) { %>
+    <div id="disableMfaModal" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg max-w-md w-full mx-4">
+            <h3 class="text-lg font-bold mb-4 text-gray-800 dark:text-gray-200">
+                🔓 Desabilitar Autenticação de Dois Fatores
+            </h3>
+            
+            <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded">
+                <p class="text-red-700 dark:text-red-300 text-sm">
+                    ⚠️ <strong>Atenção:</strong> Desabilitar o MFA reduzirá significativamente a segurança da sua conta.
+                </p>
+            </div>
+            
+            <form action="/mfa-disable" method="POST">
+                <div class="mb-4">
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Digite sua senha para confirmar:
+                    </label>
+                    <input 
+                        type="password" 
+                        id="confirmPassword" 
+                        name="password" 
+                        required 
+                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-red-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                        placeholder="Sua senha atual"
+                    >
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button 
+                        type="button" 
+                        onclick="hideDisableMfaModal()"
+                        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 transition"
+                    >
+                        Cancelar
+                    </button>
+                    <button 
+                        type="submit"
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                    >
+                        🔓 Desabilitar MFA
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <% } %>
+    
+    <!-- Ligação para os novos ficheiros de script -->
+    <script src="/js/notifications.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/theme-toggle.js"></script>
+    <script src="/js/validation.js"></script>
+    <script>
+        // =============== MFA FUNCTIONS ===============
+        
+        // Toggle MFA dropdown
+        document.addEventListener('DOMContentLoaded', function() {
+            const mfaBtn = document.getElementById('mfaBtn');
+            const mfaDropdown = document.getElementById('mfaDropdown');
+            
+            if (mfaBtn && mfaDropdown) {
+                mfaBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    mfaDropdown.classList.toggle('hidden');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function() {
+                    mfaDropdown.classList.add('hidden');
+                });
+                
+                // Prevent dropdown from closing when clicking inside
+                mfaDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+        });
+        
+        // Show disable MFA modal
+        function showDisableMfaModal() {
+            const modal = document.getElementById('disableMfaModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.getElementById('confirmPassword').focus();
+            }
+        }
+        
+        // Hide disable MFA modal
+        function hideDisableMfaModal() {
+            const modal = document.getElementById('disableMfaModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                document.getElementById('confirmPassword').value = '';
+            }
+        }
+        
+        // Close modal with ESC key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideDisableMfaModal();
+            }
+        });
+    </script>
+</body>
+</html>

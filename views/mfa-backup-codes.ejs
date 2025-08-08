@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Códigos de Backup MFA - Meu Portfólio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="/css/styles.css">
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 min-h-screen flex items-center justify-center">
+    
+    <div class="w-full max-w-2xl mx-auto p-6">
+        
+        <!-- Card Principal -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+            
+            <!-- Header -->
+            <div class="bg-gradient-to-r from-green-500 to-emerald-600 px-8 py-6 text-center">
+                <h1 class="text-2xl font-bold text-white mb-2">🎉 MFA Configurado com Sucesso!</h1>
+                <p class="text-green-100 text-sm">Sua conta agora está protegida com autenticação de dois fatores</p>
+            </div>
+            
+            <!-- Conteúdo -->
+            <div class="px-8 py-8">
+                
+                <!-- Sucesso -->
+                <div class="text-center mb-8">
+                    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                        Configuração Completa!
+                    </h2>
+                    <p class="text-gray-600 dark:text-gray-400">
+                        Olá <strong><%= user.username %></strong>, sua conta está agora mais segura.
+                    </p>
+                </div>
+                
+                <!-- Códigos de Backup -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">
+                        🔑 Códigos de Backup de Emergência
+                    </h3>
+                    
+                    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg p-6 mb-6">
+                        <h4 class="font-bold text-red-800 dark:text-red-200 mb-3">
+                            ⚠️ MUITO IMPORTANTE - GUARDE ESTES CÓDIGOS COM SEGURANÇA!
+                        </h4>
+                        <ul class="text-red-700 dark:text-red-300 text-sm space-y-1">
+                            <li>• Use estes códigos se perder acesso ao seu aplicativo autenticador</li>
+                            <li>• Cada código pode ser usado apenas uma vez</li>
+                            <li>• Guarde em local seguro (cofre, gerenciador de senhas, etc.)</li>
+                            <li>• NUNCA compartilhe estes códigos com ninguém</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-gray-100 dark:bg-gray-700 p-6 rounded-lg border-2 border-gray-300 dark:border-gray-600">
+                        <div class="grid grid-cols-2 gap-4">
+                            <% backupCodes.forEach((code, index) => { %>
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded border text-center">
+                                    <span class="font-mono text-lg font-bold text-gray-800 dark:text-gray-200">
+                                        <%= code %>
+                                    </span>
+                                </div>
+                            <% }); %>
+                        </div>
+                        
+                        <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                            <button 
+                                onclick="copyAllCodes()" 
+                                class="flex-1 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition text-sm font-medium"
+                            >
+                                📋 Copiar Todos os Códigos
+                            </button>
+                            
+                            <button 
+                                onclick="printCodes()" 
+                                class="flex-1 bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition text-sm font-medium"
+                            >
+                                🖨️ Imprimir Códigos
+                            </button>
+                            
+                            <button 
+                                onclick="downloadCodes()" 
+                                class="flex-1 bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600 transition text-sm font-medium"
+                            >
+                                💾 Baixar como TXT
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Instruções -->
+                <div class="mb-8 p-6 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                    <h4 class="font-bold text-blue-800 dark:text-blue-200 mb-3">
+                        📖 Como usar a partir de agora:
+                    </h4>
+                    <ol class="text-blue-700 dark:text-blue-300 text-sm space-y-2">
+                        <li><strong>1.</strong> Digite seu usuário e senha normalmente</li>
+                        <li><strong>2.</strong> Abra seu aplicativo autenticador</li>
+                        <li><strong>3.</strong> Digite o código de 6 dígitos</li>
+                        <li><strong>4.</strong> Se não tiver acesso ao app, use um código de backup</li>
+                    </ol>
+                </div>
+                
+                <!-- Botões de Ação -->
+                <div class="text-center space-y-4">
+                    <div class="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg">
+                        <p class="text-green-700 dark:text-green-300 text-sm mb-3">
+                            ✅ Configuração concluída! Você já pode acessar o dashboard.
+                        </p>
+                        <a 
+                            href="/dashboard"
+                            class="inline-block bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-8 rounded-lg font-bold hover:from-green-600 hover:to-emerald-700 transform transition duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                        >
+                            🚀 Ir para o Dashboard
+                        </a>
+                    </div>
+                    
+                    <p class="text-gray-500 dark:text-gray-400 text-sm">
+                        Você pode gerenciar suas configurações de MFA no dashboard.
+                    </p>
+                </div>
+                
+            </div>
+            
+        </div>
+        
+    </div>
+    
+    <script>
+        const backupCodes = <%- JSON.stringify(backupCodes) %>;
+        
+        function copyAllCodes() {
+            const allCodes = backupCodes.join('\n');
+            navigator.clipboard.writeText(allCodes).then(() => {
+                alert('Todos os códigos copiados para a área de transferência!');
+            });
+        }
+        
+        function printCodes() {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Códigos de Backup MFA - <%= user.username %></title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 20px; }
+                        .header { text-align: center; margin-bottom: 30px; }
+                        .codes { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+                        .code { padding: 10px; border: 1px solid #ccc; text-align: center; font-family: monospace; font-size: 18px; }
+                        .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; margin: 20px 0; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <h1>🔑 Códigos de Backup MFA</h1>
+                        <p><strong>Usuário:</strong> <%= user.username %></p>
+                        <p><strong>Data:</strong> ${new Date().toLocaleDateString('pt-BR')}</p>
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ IMPORTANTE:</strong>
+                        <ul>
+                            <li>Cada código pode ser usado apenas uma vez</li>
+                            <li>Guarde em local seguro</li>
+                            <li>Não compartilhe com ninguém</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="codes">
+                        ${backupCodes.map(code => `<div class="code">${code}</div>`).join('')}
+                    </div>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        function downloadCodes() {
+            const content = `Códigos de Backup MFA - Meu Portfólio
+Usuário: <%= user.username %>
+Data: ${new Date().toLocaleDateString('pt-BR')}
+
+CÓDIGOS DE EMERGÊNCIA:
+${backupCodes.map((code, i) => `${i + 1}. ${code}`).join('\n')}
+
+IMPORTANTE:
+- Cada código pode ser usado apenas uma vez
+- Guarde em local seguro
+- Não compartilhe com ninguém
+- Use apenas se perder acesso ao aplicativo autenticador`;
+            
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'backup-codes-mfa-<%= user.username %>.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    </script>
+    
+    <script src="/js/theme-toggle.js"></script>
+</body>
+</html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug - Formulário de Reset</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .debug-log {
+            background: #f3f4f6;
+            border: 1px solid #d1d5db;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold mb-4">🔧 Debug do Formulário</h1>
+        
+        <div class="debug-log" id="debugLog">
+            <strong>Log de Debug:</strong><br>
+            Página carregada...<br>
+        </div>
+        
+        <form id="resetPasswordForm" action="/reset-password/4f22c9ba3b5cf2ac33a754a306492a4f82c91b9f8ac455f1cd845474b406c094" method="POST" class="space-y-4">
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
+                    Nova Senha
+                </label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    required 
+                    minlength="6"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Mínimo 6 caracteres"
+                >
+            </div>
+            
+            <div>
+                <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-2">
+                    Confirmar Nova Senha
+                </label>
+                <input 
+                    type="password" 
+                    id="confirmPassword" 
+                    name="confirmPassword" 
+                    required 
+                    minlength="6"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                    placeholder="Repita a senha"
+                >
+            </div>
+            
+            <div id="passwordMatch" class="text-sm text-red-600 hidden">
+                As senhas não coincidem
+            </div>
+            
+            <button 
+                type="submit" 
+                id="submitBtn"
+                class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 px-6 rounded-lg font-bold text-lg hover:from-green-600 hover:to-emerald-700 transform transition duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 shadow-lg"
+            >
+                <span class="flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    🔒 Redefinir Minha Senha
+                </span>
+            </button>
+        </form>
+        
+        <div class="mt-6 space-y-2">
+            <button onclick="fillTestPassword()" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                Preencher Senha de Teste
+            </button>
+            <button onclick="debugFormValidation()" class="w-full bg-purple-500 text-white py-2 px-4 rounded hover:bg-purple-600">
+                Debug Validação
+            </button>
+            <button onclick="forceSubmit()" class="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+                Forçar Envio
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const debugLog = document.getElementById('debugLog');
+        
+        function addLog(message) {
+            debugLog.innerHTML += message + '<br>';
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
+        
+        function fillTestPassword() {
+            document.getElementById('password').value = 'teste123456';
+            document.getElementById('confirmPassword').value = 'teste123456';
+            addLog('✅ Senhas de teste preenchidas');
+        }
+        
+        function debugFormValidation() {
+            const password = document.getElementById('password');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            addLog('🔍 Debug de validação:');
+            addLog(`Password value: "${password.value}"`);
+            addLog(`Confirm value: "${confirmPassword.value}"`);
+            addLog(`Password length: ${password.value.length}`);
+            addLog(`Confirm length: ${confirmPassword.value.length}`);
+            addLog(`Passwords match: ${password.value === confirmPassword.value}`);
+            addLog(`Submit button disabled: ${submitBtn.disabled}`);
+            addLog(`Submit button classes: ${submitBtn.className}`);
+        }
+        
+        function forceSubmit() {
+            const form = document.getElementById('resetPasswordForm');
+            addLog('🚀 Forçando envio do formulário...');
+            form.submit();
+        }
+        
+        // Validação de senhas em tempo real
+        const password = document.getElementById('password');
+        const confirmPassword = document.getElementById('confirmPassword');
+        const passwordMatch = document.getElementById('passwordMatch');
+        const submitBtn = document.getElementById('submitBtn');
+        const form = document.getElementById('resetPasswordForm');
+        
+        addLog('📋 Elementos encontrados:');
+        addLog(`Password field: ${password ? 'OK' : 'NOT FOUND'}`);
+        addLog(`Confirm field: ${confirmPassword ? 'OK' : 'NOT FOUND'}`);
+        addLog(`Submit button: ${submitBtn ? 'OK' : 'NOT FOUND'}`);
+        addLog(`Form: ${form ? 'OK' : 'NOT FOUND'}`);
+        
+        function checkPasswords() {
+            addLog('🔄 checkPasswords() executada');
+            
+            if (password && confirmPassword && passwordMatch && submitBtn) {
+                const passwordValue = password.value;
+                const confirmValue = confirmPassword.value;
+                
+                addLog(`Checking: "${passwordValue}" vs "${confirmValue}"`);
+                
+                // Verificar se as senhas coincidem e têm pelo menos 6 caracteres
+                if (passwordValue.length >= 6 && confirmValue.length >= 6) {
+                    if (passwordValue === confirmValue) {
+                        passwordMatch.classList.add('hidden');
+                        submitBtn.classList.remove('opacity-50');
+                        submitBtn.classList.add('hover:scale-105');
+                        addLog('✅ Senhas válidas e coincidentes');
+                    } else {
+                        passwordMatch.classList.remove('hidden');
+                        submitBtn.classList.add('opacity-50');
+                        submitBtn.classList.remove('hover:scale-105');
+                        addLog('❌ Senhas não coincidem');
+                    }
+                } else {
+                    submitBtn.classList.add('opacity-50');
+                    submitBtn.classList.remove('hover:scale-105');
+                    addLog('❌ Senhas muito curtas');
+                }
+            }
+        }
+        
+        // Adicionar feedback visual ao botão durante envio
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                addLog('📝 Form submit event triggered');
+                
+                const passwordValue = password ? password.value : '';
+                const confirmValue = confirmPassword ? confirmPassword.value : '';
+                
+                addLog(`Submit validation: "${passwordValue}" vs "${confirmValue}"`);
+                
+                // Impedir envio se senhas não coincidem ou são muito curtas
+                if (passwordValue.length < 6 || confirmValue.length < 6 || passwordValue !== confirmValue) {
+                    e.preventDefault();
+                    addLog('❌ ENVIO IMPEDIDO: Senhas inválidas');
+                    alert('Por favor, digite senhas válidas que coincidam (mínimo 6 caracteres)');
+                    return false;
+                }
+                
+                addLog('✅ VALIDAÇÃO OK: Enviando formulário...');
+                
+                if (submitBtn) {
+                    // Estado de loading
+                    submitBtn.innerHTML = `
+                        <span class="flex items-center justify-center">
+                            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            🔄 Redefinindo senha...
+                        </span>
+                    `;
+                    submitBtn.disabled = true;
+                    addLog('🔄 Botão em estado de loading');
+                }
+                
+                // Permitir que o formulário seja enviado normalmente
+                return true;
+            });
+            
+            addLog('✅ Event listener de submit adicionado');
+        }
+        
+        if (password && confirmPassword) {
+            password.addEventListener('input', function() {
+                addLog('📝 Password input changed');
+                checkPasswords();
+            });
+            confirmPassword.addEventListener('input', function() {
+                addLog('📝 Confirm password input changed');
+                checkPasswords();
+            });
+            
+            // Verificação inicial
+            checkPasswords();
+            addLog('✅ Event listeners adicionados aos campos');
+        }
+        
+        addLog('🎯 Setup completo!');
+    </script>
+</body>
+</html>

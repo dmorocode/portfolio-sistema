@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Email - Portfólio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen py-12">
+    <div class="max-w-4xl mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6">🧪 Teste do Sistema de Email</h1>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- Teste de Forgot Password -->
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold text-blue-800 mb-4">📧 Testar Redefinição de Senha</h2>
+                    <form action="/forgot-password" method="POST" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Email para teste:</label>
+                            <input 
+                                type="email" 
+                                name="email" 
+                                value="admin@portfolio.com" 
+                                required 
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                            >
+                        </div>
+                        <button 
+                            type="submit" 
+                            class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition duration-200"
+                        >
+                            🚀 Enviar Email de Reset
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Instruções -->
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h2 class="text-xl font-semibold text-green-800 mb-4">📋 Instruções</h2>
+                    <ol class="space-y-3 text-sm text-green-700">
+                        <li class="flex items-start">
+                            <span class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">1</span>
+                            <span>Clique em "Enviar Email de Reset" acima</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">2</span>
+                            <span>Verifique o console do servidor (terminal)</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">3</span>
+                            <span>Se aparecer um link "Preview URL", copie e cole no navegador</span>
+                        </li>
+                        <li class="flex items-start">
+                            <span class="bg-green-200 text-green-800 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mr-3 mt-0.5">4</span>
+                            <span>Teste o link de redefinição de senha</span>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+            
+            <!-- Status atual -->
+            <div class="mt-8 bg-gray-50 p-6 rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">⚙️ Configuração Atual de Email</h3>
+                <div class="grid md:grid-cols-3 gap-4 text-sm">
+                    <div class="bg-white p-4 rounded border">
+                        <strong class="text-blue-600">SendGrid:</strong>
+                        <p class="text-gray-600 mt-1">
+                            <%= process.env.SENDGRID_API_KEY ? '✅ Configurado' : '❌ Não configurado' %>
+                        </p>
+                    </div>
+                    <div class="bg-white p-4 rounded border">
+                        <strong class="text-green-600">Gmail:</strong>
+                        <p class="text-gray-600 mt-1">
+                            <%= (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) ? '✅ Configurado' : '❌ Não configurado' %>
+                        </p>
+                    </div>
+                    <div class="bg-white p-4 rounded border">
+                        <strong class="text-purple-600">Ethereal (Teste):</strong>
+                        <p class="text-gray-600 mt-1">✅ Sempre disponível</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Links úteis -->
+            <div class="mt-6 text-center space-x-4">
+                <a href="/login.html" class="inline-block bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-200">
+                    🔐 Voltar ao Login
+                </a>
+                <a href="/dashboard" class="inline-block bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition duration-200">
+                    📊 Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
