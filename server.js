@@ -163,7 +163,15 @@ initializeTransporter();
 
 // Conexão com MongoDB
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/meuPortfolioDB';
-mongoose.connect(mongoUri)
+console.log('🔗 Tentando conectar ao MongoDB...');
+console.log('🔗 URI:', mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@')); // Esconde credenciais no log
+
+mongoose.connect(mongoUri, {
+    serverSelectionTimeoutMS: 30000, // 30 segundos
+    socketTimeoutMS: 45000,
+    bufferCommands: false,
+    bufferMaxEntries: 0
+})
     .then(async () => {
         console.log('Conectado ao MongoDB com sucesso!');
         
@@ -208,7 +216,21 @@ mongoose.connect(mongoUri)
             console.error('❌ Erro ao criar dados iniciais:', error);
         }
 })
-.catch(err => console.error('Falha ao conectar ao MongoDB:', err));
+.catch(err => {
+    console.error('❌ FALHA AO CONECTAR AO MONGODB:');
+    console.error('Erro:', err.message);
+    console.error('Código:', err.code);
+    if (err.code === 8000) {
+        console.error('❌ CREDENCIAIS INVÁLIDAS - Verifique username/password');
+    } else if (err.code === 6) {
+        console.error('❌ HOST NÃO ENCONTRADO - Verifique a URL do cluster');
+    }
+    console.error('🔧 Verifique:');
+    console.error('   1. String de conexão MONGODB_URI');
+    console.error('   2. Network Access no MongoDB Atlas (0.0.0.0/0)');
+    console.error('   3. Database Access - usuário e senha');
+    console.error('   4. Cluster ativo no MongoDB Atlas');
+});
 
 // Garante que o diretório de projetos exista
 const projectsDir = path.join(__dirname, 'projects');
