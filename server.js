@@ -168,9 +168,7 @@ console.log('🔗 URI:', mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'))
 
 mongoose.connect(mongoUri, {
     serverSelectionTimeoutMS: 30000, // 30 segundos
-    socketTimeoutMS: 45000,
-    bufferCommands: true, // Mudando para true para permitir buffering
-    bufferMaxEntries: 50
+    socketTimeoutMS: 45000
 })
     .then(async () => {
         console.log('Conectado ao MongoDB com sucesso!');
