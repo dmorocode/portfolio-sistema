@@ -35,7 +35,7 @@ const createGmailTransporter = () => {
         service: 'gmail',
         auth: {
             user: process.env.GMAIL_USER,
-            pass: process.env.GMAIL_APP_PASSWORD
+            pass: process.env.GMAIL_PASS
         }
     });
 };
@@ -95,15 +95,24 @@ const sendEmail = async (mailOptions) => {
         }
         
         // Tentar Gmail se configurado
-        if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+        if (process.env.GMAIL_USER && process.env.GMAIL_PASS) {
             try {
+                console.log('📧 Tentando Gmail...');
+                console.log('📧 Gmail User:', process.env.GMAIL_USER);
+                console.log('📧 Gmail Pass configurado:', !!process.env.GMAIL_PASS);
+                
                 const gmailTransporter = createGmailTransporter();
                 const result = await gmailTransporter.sendMail(mailOptions);
                 console.log('✅ Email enviado via Gmail');
                 return result;
             } catch (gmailError) {
-                console.warn('⚠️  Gmail falhou:', gmailError.message);
+                console.error('❌ Gmail falhou:', gmailError.message);
+                console.error('Gmail Error Details:', gmailError);
             }
+        } else {
+            console.log('⚠️ Gmail não configurado:');
+            console.log('  GMAIL_USER:', !!process.env.GMAIL_USER);
+            console.log('  GMAIL_PASS:', !!process.env.GMAIL_PASS);
         }
         
         // Fallback para transporter padrão (Ethereal)
@@ -784,10 +793,15 @@ app.post('/admin/create-user', requireLogin, uploadNone.none(), async (req, res)
 // Rota para solicitar reset de senha
 app.post('/forgot-password', uploadNone.none(), async (req, res) => {
     try {
+        console.log('📧 TENTATIVA DE RESET DE SENHA');
         const { email } = req.body;
+        console.log('📧 Email solicitado:', email);
+        
         const user = await User.findOne({ email: email.toLowerCase() });
+        console.log('👤 Usuário encontrado:', user ? user.username : 'Não encontrado');
         
         if (!user) {
+            console.log('❌ Email não encontrado no banco');
             return res.render('forgot-password', { 
                 message: 'Se este email estiver cadastrado, você receberá instruções para redefinir sua senha.',
                 type: 'info'
@@ -799,6 +813,7 @@ app.post('/forgot-password', uploadNone.none(), async (req, res) => {
         user.resetToken = resetToken;
         user.resetTokenExpires = Date.now() + 3600000; // 1 hora
         await user.save();
+        console.log('🔑 Token de reset gerado:', resetToken.substring(0, 10) + '...');
         
         // Enviar email
         // URL dinâmica baseada no ambiente
@@ -806,8 +821,10 @@ app.post('/forgot-password', uploadNone.none(), async (req, res) => {
             ? `https://${req.get('host')}` 
             : `http://localhost:${PORT}`;
         const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
+        console.log('🔗 URL de reset:', resetUrl);
+        
         const mailOptions = {
-            from: process.env.EMAIL_FROM || 'noreply@portfolio.com',
+            from: process.env.GMAIL_USER || 'noreply@portfolio.com',
             to: user.email,
             subject: 'Redefinição de Senha - Meu Portfólio',
             html: `
@@ -1407,6 +1424,72 @@ app.get('/debug-admin', async (req, res) => {
             status: 'error',
             message: error.message
         });
+    }
+});
+
+// ================== ROTAS DE DOWNLOAD ==================
+
+// Rota estática para downloads (ambas as variações)
+app.use('/downloads', express.static(projectsDir));
+app.use('/download', express.static(projectsDir));
+
+// Rota específica para download com logs e contagem
+app.get('/download/:projectId/:filename', async (req, res) => {
+    try {
+        const { projectId, filename } = req.params;
+        console.log('📥 TENTATIVA DE DOWNLOAD');
+        console.log('Project ID:', projectId);
+        console.log('Filename:', filename);
+        
+        // Verificar se o projeto existe
+        const project = await Project.findById(projectId);
+        if (!project) {
+            console.log('❌ Projeto não encontrado');
+            return res.status(404).send('Projeto não encontrado');
+        }
+        
+        // Caminho do arquivo
+        const filePath = path.join(projectsDir, filename);
+        console.log('📁 Caminho do arquivo:', filePath);
+        
+        // Verificar se o arquivo existe
+        if (!fs.existsSync(filePath)) {
+            console.log('❌ Arquivo não encontrado no sistema');
+            return res.status(404).send('Arquivo não encontrado');
+        }
+        
+        // Incrementar contador de downloads
+        project.downloads = (project.downloads || 0) + 1;
+        await project.save();
+        console.log('📊 Downloads atualizados:', project.downloads);
+        
+        // Log da atividade
+        const username = req.user ? req.user.username : 'Anônimo';
+        const log = new ActivityLog({
+            username: username,
+            action: 'PROJECT_DOWNLOAD',
+            details: `Download do arquivo ${filename} do projeto ${project.title}`
+        });
+        await log.save();
+        
+        // Fazer download do arquivo
+        console.log('✅ Iniciando download...');
+        res.download(filePath, filename, (err) => {
+            if (err) {
+                console.error('❌ Erro no download:', err);
+                if (!res.headersSent) {
+                    res.status(500).send('Erro no download');
+                }
+            } else {
+                console.log('✅ Download concluído com sucesso');
+            }
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro na rota de download:', error);
+        if (!res.headersSent) {
+            res.status(500).send('Erro interno no servidor');
+        }
     }
 });
 
