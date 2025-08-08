@@ -169,8 +169,8 @@ console.log('🔗 URI:', mongoUri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@'))
 mongoose.connect(mongoUri, {
     serverSelectionTimeoutMS: 30000, // 30 segundos
     socketTimeoutMS: 45000,
-    bufferCommands: false,
-    bufferMaxEntries: 0
+    bufferCommands: true, // Mudando para true para permitir buffering
+    bufferMaxEntries: 50
 })
     .then(async () => {
         console.log('Conectado ao MongoDB com sucesso!');
@@ -383,6 +383,12 @@ app.post('/login', uploadNone.none(), async (req, res) => {
         if (!username || !password) {
             console.log('❌ Campos obrigatórios não fornecidos');
             return res.redirect('/login-error.html');
+        }
+
+        // Verificar se MongoDB está conectado
+        if (mongoose.connection.readyState !== 1) {
+            console.log('❌ MongoDB não está conectado. Estado:', mongoose.connection.readyState);
+            return res.redirect('/login-error.html?error=database');
         }
         
         // Buscar usuário no MongoDB (por username ou email)
@@ -1406,9 +1412,31 @@ app.get('/debug-admin', async (req, res) => {
     }
 });
 
-// Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Servidor rodando na porta ${PORT}`);
-    console.log(`📋 Dashboard disponível em: http://localhost:${PORT}/dashboard`);
-    console.log(`🔐 MFA Setup disponível em: http://localhost:${PORT}/mfa-setup`);
+// Iniciar servidor APENAS após conexão com MongoDB
+let serverStarted = false;
+
+const startServer = () => {
+    if (!serverStarted && mongoose.connection.readyState === 1) {
+        serverStarted = true;
+        app.listen(PORT, () => {
+            console.log(`🚀 Servidor rodando na porta ${PORT}`);
+            console.log(`📋 Dashboard disponível em: http://localhost:${PORT}/dashboard`);
+            console.log(`🔐 MFA Setup disponível em: http://localhost:${PORT}/mfa-setup`);
+            console.log(`🔧 Debug Admin: http://localhost:${PORT}/debug-admin`);
+        });
+    }
+};
+
+// Eventos de conexão MongoDB
+mongoose.connection.on('connected', () => {
+    console.log('✅ MongoDB conectado com sucesso!');
+    startServer();
+});
+
+mongoose.connection.on('error', (err) => {
+    console.error('❌ Erro na conexão MongoDB:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+    console.log('⚠️ MongoDB desconectado');
 });
