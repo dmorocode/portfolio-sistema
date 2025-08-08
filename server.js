@@ -556,7 +556,8 @@ app.post('/upload', requireLogin, upload.fields([
         const project = new Project({
             title,
             description,
-            filename: projectFile.filename,
+            filename: projectFile.filename, // Manter compatibilidade
+            files: [projectFile.filename], // Array de arquivos
             coverImage: coverImage ? coverImage.filename : null,
             category: category || null,
             owner: req.user.userId, // ObjectId do usuário logado
