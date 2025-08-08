@@ -27,6 +27,17 @@
                 <div class="flex flex-col md:flex-row justify-between items-center border-t pt-6">
                     <div class="text-sm text-gray-500 mb-4 md:mb-0">
                         Downloads: <%= project.downloads || 0 %> | Adicionado em: <%= new Date(project.createdAt).toLocaleDateString('pt-BR') %>
+                        <% 
+                            let originalFileName = null;
+                            if (project.originalFiles && project.originalFiles.length > 0) {
+                                originalFileName = project.originalFiles[0];
+                            } else if (project.originalName) {
+                                originalFileName = project.originalName;
+                            }
+                        %>
+                        <% if (originalFileName) { %>
+                            <br><span class="text-blue-600 font-medium">📄 <%= originalFileName %></span>
+                        <% } %>
                     </div>
                     <% 
                         let downloadFile = null;

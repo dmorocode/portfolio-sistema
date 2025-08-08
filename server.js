@@ -556,8 +556,10 @@ app.post('/upload', requireLogin, upload.fields([
         const project = new Project({
             title,
             description,
-            filename: projectFile.filename, // Manter compatibilidade
-            files: [projectFile.filename], // Array de arquivos
+            filename: projectFile.filename, // Nome gerado pelo multer
+            originalName: projectFile.originalname, // Nome original do arquivo
+            files: [projectFile.filename], // Array de arquivos (nomes gerados)
+            originalFiles: [projectFile.originalname], // Array de nomes originais
             coverImage: coverImage ? coverImage.filename : null,
             category: category || null,
             owner: req.user.userId, // ObjectId do usuário logado
@@ -1449,7 +1451,7 @@ app.get('/download/:projectId/:filename', async (req, res) => {
             return res.status(404).send('Projeto não encontrado');
         }
         
-        // Caminho do arquivo
+        // Caminho do arquivo (usando nome gerado pelo multer)
         const filePath = path.join(projectsDir, filename);
         console.log('📁 Caminho do arquivo:', filePath);
         
@@ -1458,6 +1460,16 @@ app.get('/download/:projectId/:filename', async (req, res) => {
             console.log('❌ Arquivo não encontrado no sistema');
             return res.status(404).send('Arquivo não encontrado');
         }
+        
+        // Determinar nome original para download
+        let downloadName = filename; // fallback
+        if (project.originalFiles && project.originalFiles.length > 0) {
+            downloadName = project.originalFiles[0];
+        } else if (project.originalName) {
+            downloadName = project.originalName;
+        }
+        
+        console.log('📄 Nome para download:', downloadName);
         
         // Incrementar contador de downloads
         project.downloads = (project.downloads || 0) + 1;
@@ -1469,13 +1481,13 @@ app.get('/download/:projectId/:filename', async (req, res) => {
         const log = new ActivityLog({
             username: username,
             action: 'PROJECT_DOWNLOAD',
-            details: `Download do arquivo ${filename} do projeto ${project.title}`
+            details: `Download do arquivo ${downloadName} do projeto ${project.title}`
         });
         await log.save();
         
-        // Fazer download do arquivo
+        // Fazer download do arquivo com nome original
         console.log('✅ Iniciando download...');
-        res.download(filePath, filename, (err) => {
+        res.download(filePath, downloadName, (err) => {
             if (err) {
                 console.error('❌ Erro no download:', err);
                 if (!res.headersSent) {
