@@ -171,6 +171,7 @@ mongoose.connect(mongoUri)
         try {
             let adminUser = await User.findOne({ username: 'admin' });
             if (!adminUser) {
+                console.log('🔧 Criando usuário admin...');
                 const hashedPassword = await bcrypt.hash('Danilo30!', 10);
                 adminUser = new User({
                     username: 'admin',
@@ -179,11 +180,15 @@ mongoose.connect(mongoUri)
                     role: 'admin'
                 });
                 await adminUser.save();
-                console.log('Usuário admin criado no MongoDB');
+                console.log('✅ Usuário admin criado no MongoDB');
+            } else {
+                console.log('✅ Usuário admin já existe no MongoDB');
             }
             // Salvar referência global do admin
             global.adminUserId = adminUser._id;
-            console.log('Usuário admin ID:', adminUser._id);
+            console.log('📋 Usuário admin ID:', adminUser._id);
+            console.log('🔑 Admin username:', adminUser.username);
+            console.log('📧 Admin email:', adminUser.email);
             
             // Criar categorias padrão se não existirem
             const categoriesCount = await Category.countDocuments();
@@ -367,11 +372,13 @@ app.post('/login', uploadNone.none(), async (req, res) => {
             ]
         });
         
-        console.log('Usuário encontrado:', user ? user.username : 'Não encontrado');
+        console.log('🔍 Usuário encontrado:', user ? user.username : 'Não encontrado');
+        console.log('🔍 Total de usuários no banco:', await User.countDocuments());
         
         if (user) {
+            console.log('🔑 Hash da senha no banco:', user.password.substring(0, 20) + '...');
             const passwordMatch = await bcrypt.compare(password, user.password);
-            console.log('Verificação de senha:', passwordMatch ? 'Válida' : 'Inválida');
+            console.log('✅ Verificação de senha:', passwordMatch ? 'Válida' : 'Inválida');
             
             if (passwordMatch) {
                 // Verificar se o usuário tem MFA habilitado
@@ -1322,6 +1329,54 @@ app.post('/mfa-disable', requireLogin, uploadNone.none(), async (req, res) => {
 });
 
 // ================== FIM DAS ROTAS MFA ==================
+
+// ================== ROTA DE DEBUG ADMIN ==================
+
+// Rota para debug - verificar/recriar usuário admin
+app.get('/debug/admin', async (req, res) => {
+    try {
+        console.log('🔧 DEBUG: Verificando usuário admin...');
+        
+        // Verificar se existe
+        let adminUser = await User.findOne({ username: 'admin' });
+        
+        if (!adminUser) {
+            console.log('🔧 Admin não encontrado, criando...');
+            const hashedPassword = await bcrypt.hash('Danilo30!', 10);
+            adminUser = new User({
+                username: 'admin',
+                email: 'admin@portfolio.com',
+                password: hashedPassword,
+                role: 'admin'
+            });
+            await adminUser.save();
+            console.log('✅ Usuário admin criado!');
+        }
+        
+        // Verificar total de usuários
+        const totalUsers = await User.countDocuments();
+        const allUsers = await User.find({}, 'username email role');
+        
+        res.json({
+            success: true,
+            message: 'Debug concluído',
+            adminExists: !!adminUser,
+            totalUsers: totalUsers,
+            users: allUsers,
+            adminInfo: {
+                id: adminUser._id,
+                username: adminUser.username,
+                email: adminUser.email,
+                role: adminUser.role,
+                mfaEnabled: adminUser.mfaEnabled
+            }
+        });
+        
+    } catch (error) {
+        console.error('Erro no debug:', error);
+        res.json({ success: false, error: error.message });
+    }
+});
 
 // Iniciar servidor
 app.listen(PORT, () => {
